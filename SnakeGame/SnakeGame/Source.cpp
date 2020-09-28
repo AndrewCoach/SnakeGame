@@ -2,6 +2,18 @@
 #include "olcConsoleGameEngine.h"
 #include "AStar.h"
 
+//TODO
+
+//Both snakes should be dead if they touch their own bodies and vice versa (for enemy we can add its own body to walls.)
+//moving and respawning the goal location.
+//implement the point system (goal picked up, thats it?)
+//implement blocking for player, walls, enemy body and such.
+//implement maybe boundary movement (wrap around or dead)?
+
+// ADDITIONAL FEATURES
+//implement a way to randomise walls?
+//Maybe add the forrests and other tiles that are hard for the enemy to pass through (though not impossible).
+
 enum class Keys
 {
 	W = 1, A = 2, S = 4, D = 8
@@ -53,7 +65,7 @@ public:
 		}
 
 		// set the end node
-		end = { 90,90 };
+		end = { 90,10 };
 
 		return true;
 	}
@@ -104,6 +116,7 @@ public:
 				{
 					snake.push_back(*it);
 				}
+				this->astar.forrestGrid.walls.erase(*snake.rbegin());
 				snake.pop_back();
 				key = Keys::W;
 			}
@@ -117,6 +130,7 @@ public:
 				{
 					snake.push_back(*it);
 				}
+				this->astar.forrestGrid.walls.erase(*snake.rbegin());
 				snake.pop_back();
 				key = Keys::A;
 			}
@@ -130,6 +144,7 @@ public:
 				{
 					snake.push_back(*it);
 				}
+				this->astar.forrestGrid.walls.erase(*snake.rbegin());
 				snake.pop_back();
 				key = Keys::S;
 			}
@@ -143,6 +158,7 @@ public:
 				{
 					snake.push_back(*it);
 				}
+				this->astar.forrestGrid.walls.erase(*snake.rbegin());
 				snake.pop_back();
 				key = Keys::D;
 			}
@@ -171,6 +187,7 @@ public:
 				{
 					snake.push_back(*it);
 				}
+				this->astar.forrestGrid.walls.erase(*snake.rbegin());
 				snake.pop_back();
 			}
 
@@ -184,6 +201,9 @@ public:
 				enemy.push_back(*it);
 			}
 			enemy.pop_back();
+
+			// add the players new head to walls so the snake avoids it.
+			this->astar.forrestGrid.walls.insert(*snake.begin());
 
 			//draw snake - lets hope it is not in a wall
 			for (auto& snakeBody : snake)
