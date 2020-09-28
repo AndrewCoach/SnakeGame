@@ -7,8 +7,7 @@
 //Both snakes should be dead if they touch their own bodies and vice versa (for enemy we can add its own body to walls.)
 //moving and respawning the goal location.
 //implement the point system (goal picked up, thats it?)
-//implement blocking for player, walls, enemy body and such.
-//implement maybe boundary movement (wrap around or dead)?
+//implement blocking for player, enemy body and such.
 
 // ADDITIONAL FEATURES
 //implement a way to randomise walls?
@@ -205,6 +204,12 @@ public:
 			// add the players new head to walls so the snake avoids it.
 			this->astar.forrestGrid.walls.insert(*snake.begin());
 
+			// flip the snake around end of map here
+			for (auto& snakeBody : snake)
+			{
+				snakeBody = flipCoordinates(snakeBody);
+			}
+
 			//draw snake - lets hope it is not in a wall
 			for (auto& snakeBody : snake)
 			{
@@ -222,6 +227,33 @@ public:
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// Wraps the incoming GridLocations coordinates around the end of the map and returns it.
+	/// </summary>
+	/// <param name="inLocation">The in location.</param>
+	/// <returns></returns>
+	GridLocation flipCoordinates(const GridLocation inLocation)
+	{
+		GridLocation outLocation{ inLocation };
+		if (inLocation.x > this->ScreenWidth())
+		{
+			outLocation.x = 0;
+		}
+		if (inLocation.y > this->ScreenHeight())
+		{
+			outLocation.y = 0;
+		}
+		if (inLocation.x < 0)
+		{
+			outLocation.x = this->ScreenWidth();
+		}
+		if (inLocation.y < 0)
+		{
+			outLocation.y = this->ScreenHeight();
+		}
+		return outLocation;
 	}
 
 private:
