@@ -16,11 +16,12 @@ public:
 	{
 		////CREATE FOR WALLS DEMO
 
-		//initiLIZE the snake to an arbitrary size for now.
+		//initiLIZE the snake and enemy to an arbitrary size for now.
 		for (int i = 0; i < 10; i++)
 		{
 			GridLocation element{ i + 10, 10 };
 			snake.push_back(element);
+			enemy.push_back({ 40, i + 40 });
 		}
 
 		//fill this block with white
@@ -45,6 +46,15 @@ public:
 			this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
 		}
 
+		//draw enemy - lets hope it is not in a wall
+		for (auto& snakeBody : enemy)
+		{
+			this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_RED);
+		}
+
+		// set the end node
+		end = { 90,90 };
+
 		return true;
 	}
 
@@ -53,24 +63,24 @@ public:
 		elapsedTime += fElapsedTime;
 		// if it has been at least half a second...
 
-		if (m_keys[L'W'].bPressed || m_keys[L'W'].bHeld && key != Keys::S)
+		if (m_keys[L'W'].bPressed || m_keys[L'W'].bHeld)
 		{
 			wantToGO = Keys::W;
 		}
-		else if (m_keys[L'A'].bPressed || m_keys[L'A'].bHeld && key != Keys::D)
+		else if (m_keys[L'A'].bPressed || m_keys[L'A'].bHeld)
 		{
 			wantToGO = Keys::A;
 		}
-		else if (m_keys[L'S'].bPressed || m_keys[L'S'].bHeld && key != Keys::W)
+		else if (m_keys[L'S'].bPressed || m_keys[L'S'].bHeld)
 		{
 			wantToGO = Keys::S;
 		}
-		else if (m_keys[L'D'].bPressed || m_keys[L'D'].bHeld && key != Keys::A)
+		else if (m_keys[L'D'].bPressed || m_keys[L'D'].bHeld)
 		{
 			wantToGO = Keys::D;
 		}
 
-		if (elapsedTime > 0.5F)
+		if (elapsedTime > 0.25F)
 		{
 			//DRAWING
 			//fill this block with white
@@ -84,7 +94,7 @@ public:
 			auto oldSnake = snake;
 			auto oldHead = snake.at(0);
 			elapsedTime = 0;
-			if (wantToGO == Keys::W)
+			if (wantToGO == Keys::W && key != Keys::S)
 			{
 				auto newHead = oldHead;
 				newHead.y -= 1;
@@ -97,7 +107,7 @@ public:
 				snake.pop_back();
 				key = Keys::W;
 			}
-			else if (wantToGO == Keys::A)
+			else if (wantToGO == Keys::A && key != Keys::D)
 			{
 				auto newHead = oldHead;
 				newHead.x -= 1;
@@ -110,7 +120,7 @@ public:
 				snake.pop_back();
 				key = Keys::A;
 			}
-			else if (wantToGO == Keys::S)
+			else if (wantToGO == Keys::S && key != Keys::W)
 			{
 				auto newHead = oldHead;
 				newHead.y += 1;
@@ -123,7 +133,7 @@ public:
 				snake.pop_back();
 				key = Keys::S;
 			}
-			else if (wantToGO == Keys::D)
+			else if (wantToGO == Keys::D && key != Keys::A)
 			{
 				auto newHead = oldHead;
 				newHead.x += 1;
@@ -164,11 +174,31 @@ public:
 				snake.pop_back();
 			}
 
+			//LETS implement the automatic enemy movement here
+			auto next = astar.nextTile(*enemy.begin(), end);
+			auto enemycopy = enemy;
+			enemy.clear();
+			enemy.push_back(next);
+			for (auto it = enemycopy.begin(); it != enemycopy.end(); it++)
+			{
+				enemy.push_back(*it);
+			}
+			enemy.pop_back();
+
 			//draw snake - lets hope it is not in a wall
 			for (auto& snakeBody : snake)
 			{
+				this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
+			}
+			//draw enemy - lets hope it is not in a wall
+			for (auto& snakeBody : enemy)
+			{
 				this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_RED);
 			}
+
+			//draw the goal
+
+			this->Draw(end.x, end.y, PIXEL_SOLID, FG_DARK_YELLOW);
 		}
 
 		return true;
@@ -184,6 +214,7 @@ private:
 	GridLocation start;
 	GridLocation end;
 	std::vector<GridLocation> snake;
+	std::vector<GridLocation> enemy;
 };
 
 int main()
