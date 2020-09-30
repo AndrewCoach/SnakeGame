@@ -1,13 +1,16 @@
 #include <iostream>
 #include "olcConsoleGameEngine.h"
 #include "AStar.h"
+#include <random>
 
 //TODO
 
 //Both snakes should be dead if they touch their own bodies and vice versa (for enemy we can add its own body to walls.)
 //moving and respawning the goal location.
+//implement growing a body if the element is eaten.
 //implement the point system (goal picked up, thats it?)
 //implement blocking for player, enemy body and such.
+// make all parts of code map size agnostic.
 
 // ADDITIONAL FEATURES
 //implement a way to randomise walls?
@@ -41,7 +44,7 @@ public:
 		//// create for ASTAR, will have to be redone
 		astar.addEmptyWeightedGraph(this->ScreenWidth(), this->ScreenHeight());
 
-		//Add walls
+		//Add walls - bounds are checked already inside AStar class
 		astar.addWallToGraph(10, 50, 1, 3);
 		astar.addWallToGraph(55, 56, 1, 70);
 
@@ -71,9 +74,10 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
+		// accrue the spent time
 		elapsedTime += fElapsedTime;
-		// if it has been at least half a second...
 
+		// Take the pressed keys (makes it super smooth if it is this often)
 		if (m_keys[L'W'].bPressed || m_keys[L'W'].bHeld)
 		{
 			wantToGO = Keys::W;
@@ -91,17 +95,20 @@ public:
 			wantToGO = Keys::D;
 		}
 
+		// if it has been at least half a second...
 		if (elapsedTime > 0.25F)
 		{
 			//DRAWING
 			//fill this block with white
 			this->Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, COLOUR::FG_WHITE);
+
 			//draw walls
 			for (auto& location : astar.forrestGrid.walls)
 			{
 				this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
 			}
 
+			// The moving of snake mechanic
 			auto oldSnake = snake;
 			auto oldHead = snake.at(0);
 			elapsedTime = 0;
@@ -179,7 +186,7 @@ public:
 					newHead.x += 1;
 					break;
 				}
-
+				// default direction
 				snake.clear();
 				snake.push_back(newHead);
 				for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
@@ -210,6 +217,10 @@ public:
 				snakeBody = flipCoordinates(snakeBody);
 			}
 
+			//check the goal
+			isAtGoal(*enemy.cbegin());
+			isAtGoal(*snake.cbegin());
+
 			//draw snake - lets hope it is not in a wall
 			for (auto& snakeBody : snake)
 			{
@@ -227,6 +238,19 @@ public:
 		}
 
 		return true;
+	}
+
+	bool isAtGoal(GridLocation head)
+	{
+		if (head.x == end.x && head.y == end.y)
+		{
+			//add points
+			//respawn goal
+			end.x = rand() % this->ScreenWidth();
+			end.y = rand() % this->ScreenHeight();
+			return true;
+		}
+		return false;
 	}
 
 	/// <summary>
@@ -259,7 +283,7 @@ public:
 private:
 	Keys wantToGO = Keys::S;
 	Keys key = Keys::S;
-	float elapsedTime;
+	float elapsedTime = 0.0F;
 	AStar astar;
 	// walls parameters
 	std::unordered_set<GridLocation> walls;
