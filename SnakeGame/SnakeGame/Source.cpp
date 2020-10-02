@@ -1,8 +1,11 @@
 #include <iostream>
 #include "olcConsoleGameEngine.h"
-#include "AStar.h"
 #include <random>
+#include "AStar.h"
 
+#ifndef INVALID_LOCATION
+#define INVALID_LOCATION GridLocation{-1,-1}
+#endif
 //TODO
 
 //Both snakes should be dead if they touch their own bodies and vice versa (for enemy we can add its own body to walls.)
@@ -31,10 +34,10 @@ public:
 		////CREATE FOR WALLS DEMO
 
 		//initiLIZE the snake and enemy to an arbitrary size for now.
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 3; i++)
 		{
 			GridLocation element{ i + 10, 10 };
-			snake.push_back(element);
+			//snake.push_back(element);
 			enemy.push_back({ 40, i + 40 });
 		}
 
@@ -42,23 +45,23 @@ public:
 		this->Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, COLOUR::FG_WHITE);
 
 		//// create for ASTAR, will have to be redone
-		astar.addEmptyWeightedGraph(this->ScreenWidth(), this->ScreenHeight());
+		astar.addEmptyWeightedGraphDiagonal(this->ScreenWidth(), this->ScreenHeight());
 
 		//Add walls - bounds are checked already inside AStar class
-		astar.addWallToGraph(10, 50, 1, 3);
-		astar.addWallToGraph(55, 56, 1, 70);
+		//astar.addWallToGraph(10, 50, 10, 13);
+		//astar.addWallToGraph(55, 56, 1, 70);
 
 		//draw walls
-		for (auto& location : astar.forrestGrid.walls)
-		{
-			this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
-		}
+		//for (auto& location : astar.forrestGrid.walls)
+		//{
+		//	this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
+		//}
 
 		//draw snake - lets hope it is not in a wall
-		for (auto& snakeBody : snake)
-		{
-			this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
-		}
+		//for (auto& snakeBody : snake)
+		//{
+		//	this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
+		//}
 
 		//draw enemy - lets hope it is not in a wall
 		for (auto& snakeBody : enemy)
@@ -78,127 +81,131 @@ public:
 		elapsedTime += fElapsedTime;
 
 		// Take the pressed keys (makes it super smooth if it is this often)
-		if (m_keys[L'W'].bPressed || m_keys[L'W'].bHeld)
-		{
-			wantToGO = Keys::W;
-		}
-		else if (m_keys[L'A'].bPressed || m_keys[L'A'].bHeld)
-		{
-			wantToGO = Keys::A;
-		}
-		else if (m_keys[L'S'].bPressed || m_keys[L'S'].bHeld)
-		{
-			wantToGO = Keys::S;
-		}
-		else if (m_keys[L'D'].bPressed || m_keys[L'D'].bHeld)
-		{
-			wantToGO = Keys::D;
-		}
+		//if (m_keys[L'W'].bPressed || m_keys[L'W'].bHeld)
+		//{
+		//	wantToGO = Keys::W;
+		//}
+		//else if (m_keys[L'A'].bPressed || m_keys[L'A'].bHeld)
+		//{
+		//	wantToGO = Keys::A;
+		//}
+		//else if (m_keys[L'S'].bPressed || m_keys[L'S'].bHeld)
+		//{
+		//	wantToGO = Keys::S;
+		//}
+		//else if (m_keys[L'D'].bPressed || m_keys[L'D'].bHeld)
+		//{
+		//	wantToGO = Keys::D;
+		//}
 
 		// if it has been at least half a second...
-		if (elapsedTime > 0.25F)
+		if (elapsedTime > 0.1F)
 		{
 			//DRAWING
 			//fill this block with white
 			this->Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, COLOUR::FG_WHITE);
 
 			//draw walls
-			for (auto& location : astar.forrestGrid.walls)
-			{
-				this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
-			}
+			//for (const auto& location : astar.forrestGrid.walls)
+			//{
+			//	this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
+			//}
 
 			// The moving of snake mechanic
-			auto oldSnake = snake;
-			auto oldHead = snake.at(0);
-			elapsedTime = 0;
-			if (wantToGO == Keys::W && key != Keys::S)
-			{
-				auto newHead = oldHead;
-				newHead.y -= 1;
-				snake.clear();
-				snake.push_back(newHead);
-				for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
-				{
-					snake.push_back(*it);
-				}
-				this->astar.forrestGrid.walls.erase(*snake.rbegin());
-				snake.pop_back();
-				key = Keys::W;
-			}
-			else if (wantToGO == Keys::A && key != Keys::D)
-			{
-				auto newHead = oldHead;
-				newHead.x -= 1;
-				snake.clear();
-				snake.push_back(newHead);
-				for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
-				{
-					snake.push_back(*it);
-				}
-				this->astar.forrestGrid.walls.erase(*snake.rbegin());
-				snake.pop_back();
-				key = Keys::A;
-			}
-			else if (wantToGO == Keys::S && key != Keys::W)
-			{
-				auto newHead = oldHead;
-				newHead.y += 1;
-				snake.clear();
-				snake.push_back(newHead);
-				for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
-				{
-					snake.push_back(*it);
-				}
-				this->astar.forrestGrid.walls.erase(*snake.rbegin());
-				snake.pop_back();
-				key = Keys::S;
-			}
-			else if (wantToGO == Keys::D && key != Keys::A)
-			{
-				auto newHead = oldHead;
-				newHead.x += 1;
-				snake.clear();
-				snake.push_back(newHead);
-				for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
-				{
-					snake.push_back(*it);
-				}
-				this->astar.forrestGrid.walls.erase(*snake.rbegin());
-				snake.pop_back();
-				key = Keys::D;
-			}
-			else
-			{
-				auto newHead = oldHead;
-				switch ((int)key)
-				{
-				case 1:
-					newHead.y -= 1;
-					break;
-				case 2:
-					newHead.x -= 1;
-					break;
-				case 4:
-					newHead.y += 1;
-					break;
-				case 8:
-					newHead.x += 1;
-					break;
-				}
-				// default direction
-				snake.clear();
-				snake.push_back(newHead);
-				for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
-				{
-					snake.push_back(*it);
-				}
-				this->astar.forrestGrid.walls.erase(*snake.rbegin());
-				snake.pop_back();
-			}
+			//auto oldSnake = snake;
+			//auto oldHead = snake.at(0);
+			//elapsedTime = 0;
+			//if (wantToGO == Keys::W && key != Keys::S)
+			//{
+			//	auto newHead = oldHead;
+			//	newHead.y -= 1;
+			//	snake.clear();
+			//	snake.push_back(newHead);
+			//	for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
+			//	{
+			//		snake.push_back(*it);
+			//	}
+			//	this->astar.forrestGrid.walls.erase(*snake.rbegin());
+			//	snake.pop_back();
+			//	key = Keys::W;
+			//}
+			//else if (wantToGO == Keys::A && key != Keys::D)
+			//{
+			//	auto newHead = oldHead;
+			//	newHead.x -= 1;
+			//	snake.clear();
+			//	snake.push_back(newHead);
+			//	for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
+			//	{
+			//		snake.push_back(*it);
+			//	}
+			//	this->astar.forrestGrid.walls.erase(*snake.rbegin());
+			//	snake.pop_back();
+			//	key = Keys::A;
+			//}
+			//else if (wantToGO == Keys::S && key != Keys::W)
+			//{
+			//	auto newHead = oldHead;
+			//	newHead.y += 1;
+			//	snake.clear();
+			//	snake.push_back(newHead);
+			//	for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
+			//	{
+			//		snake.push_back(*it);
+			//	}
+			//	this->astar.forrestGrid.walls.erase(*snake.rbegin());
+			//	snake.pop_back();
+			//	key = Keys::S;
+			//}
+			//else if (wantToGO == Keys::D && key != Keys::A)
+			//{
+			//	auto newHead = oldHead;
+			//	newHead.x += 1;
+			//	snake.clear();
+			//	snake.push_back(newHead);
+			//	for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
+			//	{
+			//		snake.push_back(*it);
+			//	}
+			//	this->astar.forrestGrid.walls.erase(*snake.rbegin());
+			//	snake.pop_back();
+			//	key = Keys::D;
+			//}
+			//else
+			//{
+			//	auto newHead = oldHead;
+			//	switch ((int)key)
+			//	{
+			//	case 1:
+			//		newHead.y -= 1;
+			//		break;
+			//	case 2:
+			//		newHead.x -= 1;
+			//		break;
+			//	case 4:
+			//		newHead.y += 1;
+			//		break;
+			//	case 8:
+			//		newHead.x += 1;
+			//		break;
+			//	}
+			//	// default direction
+			//	snake.clear();
+			//	snake.push_back(newHead);
+			//	for (auto it = oldSnake.begin(); it != oldSnake.end(); it++)
+			//	{
+			//		snake.push_back(*it);
+			//	}
+			//	this->astar.forrestGrid.walls.erase(*snake.rbegin());
+			//	snake.pop_back();
+			//}
 
 			//LETS implement the automatic enemy movement here
-			auto next = astar.nextTile(*enemy.begin(), end);
+			auto next = astar.nextTileDiagonal(*enemy.begin(), end);
+			if (next == GridLocation{ INVALID_LOCATION })
+			{
+				return false;
+			}
 			auto enemycopy = enemy;
 			enemy.clear();
 			enemy.push_back(next);
@@ -206,28 +213,30 @@ public:
 			{
 				enemy.push_back(*it);
 			}
+			GridLocation temp = *enemy.rbegin();
 			enemy.pop_back();
 
 			// add the players new head to walls so the snake avoids it.
-			this->astar.forrestGrid.walls.insert(*snake.begin());
+			//this->astar.forrestGrid.walls.insert(*snake.begin());
 
 			// flip the snake around end of map here
-			for (auto& snakeBody : snake)
-			{
-				snakeBody = flipCoordinates(snakeBody);
-			}
+			//for (auto& snakeBody : snake)
+			//{
+			//	snakeBody = flipCoordinates(snakeBody);
+			//}
 
 			//check the goal
-			isAtGoal(*enemy.cbegin());
-			isAtGoal(*snake.cbegin());
+			if (isAtGoal(*enemy.cbegin()))
+				enemy.push_back(temp);
+			//isAtGoal(*snake.cbegin());
 
 			//draw snake - lets hope it is not in a wall
-			for (auto& snakeBody : snake)
-			{
-				this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
-			}
+			//for (auto& snakeBody : snake)
+			//{
+			//	this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
+			//}
 			//draw enemy - lets hope it is not in a wall
-			for (auto& snakeBody : enemy)
+			for (const auto& snakeBody : enemy)
 			{
 				this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_RED);
 			}
@@ -235,12 +244,13 @@ public:
 			//draw the goal
 
 			this->Draw(end.x, end.y, PIXEL_SOLID, FG_DARK_YELLOW);
+			elapsedTime = 0.0F;
 		}
 
 		return true;
 	}
 
-	bool isAtGoal(GridLocation head)
+	bool isAtGoal(const GridLocation head)
 	{
 		if (head.x == end.x && head.y == end.y)
 		{
