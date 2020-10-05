@@ -164,6 +164,8 @@ struct SquareGridDiagonal {
 			}
 		}
 
+		// We can do a check here, if we do not have any neighbors and then do other stuff
+
 		if ((id.x + id.y) % 2 == 0) {
 			// aesthetic improvement on square grids
 			std::reverse(results.begin(), results.end());
@@ -380,6 +382,7 @@ void a_star_search_Euklidean(Graph graph, Location start, Location goal,
 		if (current == goal) {
 			break;
 		}
+		// so when forntier has last element, and it has no neighbors, then....
 
 		for (Location next : graph.neighbors(current)) {
 			double new_cost = cost_so_far[current] + graph.cost(current, next);
