@@ -48,14 +48,14 @@ public:
 		astar.addEmptyWeightedGraphDiagonal(this->ScreenWidth(), this->ScreenHeight());
 
 		//Add walls - bounds are checked already inside AStar class
-		//astar.addWallToGraph(10, 50, 10, 13);
-		//astar.addWallToGraph(55, 56, 1, 70);
+		astar.addWallToGraphDiagonal(10, 50, 10, 13);
+		astar.addWallToGraphDiagonal(55, 56, 1, 70);
 
 		//draw walls
-		//for (auto& location : astar.forrestGrid.walls)
-		//{
-		//	this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
-		//}
+		for (auto& location : astar.forrestGridDiagonal.walls)
+		{
+			this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
+		}
 
 		//draw snake - lets hope it is not in a wall
 		//for (auto& snakeBody : snake)
@@ -70,7 +70,7 @@ public:
 		}
 
 		// set the end node
-		end = { 90,10 };
+		end = { this->ScreenWidth() / 2,this->ScreenHeight() / 2 };
 
 		return true;
 	}
@@ -104,12 +104,6 @@ public:
 			//DRAWING
 			//fill this block with white
 			this->Fill(0, 0, ScreenWidth(), ScreenHeight(), PIXEL_SOLID, COLOUR::FG_WHITE);
-
-			//draw walls
-			//for (const auto& location : astar.forrestGrid.walls)
-			//{
-			//	this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
-			//}
 
 			// The moving of snake mechanic
 			//auto oldSnake = snake;
@@ -200,20 +194,31 @@ public:
 			//	snake.pop_back();
 			//}
 
+			//The whole enemy before its movement is put in walls.
+
+			for (const auto bodyPart : enemy)
+			{
+				astar.forrestGridDiagonal.walls.insert(bodyPart);
+			}
+
 			//LETS implement the automatic enemy movement here
 			auto next = astar.nextTileDiagonal(*enemy.begin(), end);
-			if (next == GridLocation{ INVALID_LOCATION })
+			if (next == INVALID_LOCATION)
 			{
 				return false;
 			}
 			auto enemycopy = enemy;
 			enemy.clear();
 			enemy.push_back(next);
+			//we add the new head to walls
+			astar.forrestGridDiagonal.walls.insert(next);
 			for (auto it = enemycopy.begin(); it != enemycopy.end(); it++)
 			{
 				enemy.push_back(*it);
 			}
 			GridLocation temp = *enemy.rbegin();
+			//we take away the end from walls
+			astar.forrestGridDiagonal.walls.erase(temp);
 			enemy.pop_back();
 
 			// add the players new head to walls so the snake avoids it.
@@ -227,14 +232,28 @@ public:
 
 			//check the goal
 			if (isAtGoal(*enemy.cbegin()))
+			{
 				enemy.push_back(temp);
+				//we add the new end that the enemy got.
+				astar.forrestGridDiagonal.walls.insert(temp);
+			}
+
 			//isAtGoal(*snake.cbegin());
+
+			//UpdateWalls()
 
 			//draw snake - lets hope it is not in a wall
 			//for (auto& snakeBody : snake)
 			//{
 			//	this->Draw(snakeBody.x, snakeBody.y, PIXEL_SOLID, FG_GREEN);
 			//}
+
+			//draw walls
+			for (const auto& location : astar.forrestGridDiagonal.walls)
+			{
+				this->Draw(location.x, location.y, PIXEL_SOLID, FG_BLACK);
+			}
+
 			//draw enemy - lets hope it is not in a wall
 			for (const auto& snakeBody : enemy)
 			{
@@ -256,8 +275,24 @@ public:
 		{
 			//add points
 			//respawn goal
-			end.x = rand() % this->ScreenWidth();
-			end.y = rand() % this->ScreenHeight();
+
+			//heuristic to create always a valid goal - sourcing the walls collection
+			std::vector<GridLocation> antiWalls;
+
+			for (int x = 0; x < this->ScreenWidth(); ++x)
+			{
+				for (int y = 0; y < this->ScreenHeight(); ++y)
+				{
+					if (astar.forrestGridDiagonal.walls.find(GridLocation{ x,y }) == astar.forrestGridDiagonal.walls.end())
+					{
+						antiWalls.push_back(GridLocation{ x,y });
+					}
+				}
+			}
+			const size_t size = antiWalls.size();
+			int rand = std::rand() % size;
+			end = antiWalls[rand];
+
 			return true;
 		}
 		return false;
