@@ -2,6 +2,7 @@
 #include "olcConsoleGameEngine.h"
 #include <random>
 #include "AStar.h"
+#include <mutex>
 
 #ifndef INVALID_LOCATION
 #define INVALID_LOCATION GridLocation{-1,-1}
